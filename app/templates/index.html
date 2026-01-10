@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="Track your reading progress, capture book moments, and view your reading stats">
+    <meta name="theme-color" content="#4a90e2">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Reading Journal">
+
+    <title>Reading Journal - Track Your Reading Journey</title>
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/static/icons/icon-192.png">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- App Container -->
+    <div id="app">
+        <!-- Header -->
+        <header class="app-header">
+            <h1>📚 Reading Journal</h1>
+            <nav>
+                <button id="nav-library" class="nav-btn active">Library</button>
+                <button id="nav-wrapped" class="nav-btn">Wrapped</button>
+            </nav>
+        </header>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            <!-- Library View -->
+            <section id="library-view" class="view active">
+                <div class="action-bar">
+                    <button id="btn-add-book" class="btn btn-primary">+ Add Book</button>
+                    <input type="search" id="search-library" placeholder="Search your library...">
+                </div>
+
+                <div id="books-grid" class="books-grid">
+                    <!-- Books will be loaded here -->
+                    <div class="empty-state">
+                        <p>📖 No books yet. Start by adding your first book!</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Wrapped View -->
+            <section id="wrapped-view" class="view">
+                <div class="wrapped-controls">
+                    <select id="wrapped-period">
+                        <option value="monthly">Monthly</option>
+                        <option value="quarterly">Quarterly</option>
+                        <option value="yearly" selected>Yearly</option>
+                    </select>
+                    <input type="number" id="wrapped-year" min="2020" max="2030" value="2026">
+                </div>
+
+                <div id="wrapped-stats" class="stats-grid">
+                    <!-- Stats will be loaded here -->
+                </div>
+            </section>
+        </main>
+
+        <!-- Modals -->
+        <div id="modal-overlay" class="modal-overlay">
+            <!-- Add Book Modal -->
+            <div id="modal-add-book" class="modal">
+                <div class="modal-header">
+                    <h2>Add Book</h2>
+                    <button class="btn-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <input type="search" id="book-search" placeholder="Search by title or author...">
+                    <div id="search-results" class="search-results"></div>
+
+                    <div class="divider">OR</div>
+
+                    <form id="manual-book-form">
+                        <input type="text" id="manual-title" placeholder="Title" required>
+                        <input type="text" id="manual-author" placeholder="Author" required>
+                        <input type="number" id="manual-pages" placeholder="Total Pages">
+                        <button type="submit" class="btn btn-primary">Add Manually</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Book Detail Modal -->
+            <div id="modal-book-detail" class="modal">
+                <div class="modal-header">
+                    <h2 id="detail-title"></h2>
+                    <button class="btn-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div id="book-detail-content">
+                        <!-- Book details will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div id="loading" class="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/static/js/app.js"></script>
+    <script>
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('Service Worker registered'))
+                    .catch(err => console.error('Service Worker registration failed:', err));
+            });
+        }
+    </script>
+</body>
+</html>
