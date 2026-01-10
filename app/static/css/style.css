@@ -1,0 +1,784 @@
+/* ============================================================================
+   CSS Variables & Reset
+   ============================================================================ */
+:root {
+    --primary-color: #4a90e2;
+    --primary-dark: #357abd;
+    --secondary-color: #f39c12;
+    --success-color: #27ae60;
+    --danger-color: #e74c3c;
+    --text-color: #2c3e50;
+    --text-light: #7f8c8d;
+    --bg-color: #f8f9fa;
+    --card-bg: #ffffff;
+    --border-color: #e1e8ed;
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
+    --border-radius: 12px;
+    --spacing: 1rem;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================================================
+   App Layout
+   ============================================================================ */
+#app {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.app-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    color: white;
+    padding: env(safe-area-inset-top, 1rem) 1rem 1rem;
+    box-shadow: var(--shadow);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.app-header h1 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.app-header nav {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.nav-btn {
+    flex: 1;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.nav-btn.active {
+    background: white;
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.nav-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.nav-btn.active:hover {
+    background: white;
+}
+
+/* ============================================================================
+   Main Content Area
+   ============================================================================ */
+.app-main {
+    flex: 1;
+    padding: 1rem;
+    padding-bottom: env(safe-area-inset-bottom, 1rem);
+}
+
+.view {
+    display: none;
+}
+
+.view.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============================================================================
+   Action Bar
+   ============================================================================ */
+.action-bar {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+#search-library {
+    flex: 1;
+    min-width: 200px;
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+#search-library:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+/* ============================================================================
+   Buttons
+   ============================================================================ */
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+}
+
+.btn-secondary {
+    background: var(--text-light);
+    color: white;
+}
+
+.btn-danger {
+    background: var(--danger-color);
+    color: white;
+}
+
+.btn-success {
+    background: var(--success-color);
+    color: white;
+}
+
+/* ============================================================================
+   Books Grid
+   ============================================================================ */
+.books-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.book-card {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.book-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+}
+
+.book-cover {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 3rem;
+}
+
+.book-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.book-info {
+    padding: 1rem;
+}
+
+.book-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.book-author {
+    color: var(--text-light);
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+}
+
+.book-progress {
+    margin-top: 0.75rem;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 6px;
+    background: var(--border-color);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--success-color), var(--primary-color));
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    display: flex;
+    justify-content: space-between;
+}
+
+.book-status {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+}
+
+.status-reading {
+    background: #e3f2fd;
+    color: var(--primary-color);
+}
+
+.status-completed {
+    background: #e8f5e9;
+    color: var(--success-color);
+}
+
+.status-paused {
+    background: #fff3e0;
+    color: var(--secondary-color);
+}
+
+/* ============================================================================
+   Empty State
+   ============================================================================ */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-light);
+    font-size: 1.1rem;
+}
+
+.empty-state p {
+    margin-top: 1rem;
+}
+
+/* ============================================================================
+   Modal
+   ============================================================================ */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+    backdrop-filter: blur(4px);
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.btn-close {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: var(--text-light);
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.btn-close:hover {
+    background: var(--bg-color);
+    color: var(--text-color);
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+/* ============================================================================
+   Forms
+   ============================================================================ */
+input[type="text"],
+input[type="number"],
+input[type="search"],
+input[type="date"],
+textarea,
+select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: inherit;
+    margin-bottom: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+form .btn {
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+.divider {
+    text-align: center;
+    margin: 1.5rem 0;
+    color: var(--text-light);
+    position: relative;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 40%;
+    height: 1px;
+    background: var(--border-color);
+}
+
+.divider::before {
+    left: 0;
+}
+
+.divider::after {
+    right: 0;
+}
+
+/* ============================================================================
+   Search Results
+   ============================================================================ */
+.search-results {
+    max-height: 400px;
+    overflow-y: auto;
+    margin: 1rem 0;
+}
+
+.search-result-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.search-result-item:hover {
+    border-color: var(--primary-color);
+    background: var(--bg-color);
+}
+
+.search-result-cover {
+    width: 60px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 4px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    flex-shrink: 0;
+}
+
+.search-result-info {
+    flex: 1;
+}
+
+.search-result-title {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.search-result-author {
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+/* ============================================================================
+   Book Detail View
+   ============================================================================ */
+.book-detail-header {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.book-detail-cover {
+    width: 150px;
+    height: 225px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    flex-shrink: 0;
+}
+
+.book-detail-info {
+    flex: 1;
+}
+
+.book-detail-meta {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.meta-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.meta-label {
+    color: var(--text-light);
+}
+
+.meta-value {
+    font-weight: 600;
+}
+
+.detail-section {
+    margin-top: 2rem;
+}
+
+.detail-section h3 {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.session-list,
+.photo-gallery {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.session-item {
+    padding: 1rem;
+    background: var(--bg-color);
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.session-date {
+    font-weight: 600;
+}
+
+.session-pages {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.photo-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 0.75rem;
+}
+
+.photo-item {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.photo-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.photo-item:hover img {
+    transform: scale(1.1);
+}
+
+.photo-delete {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: var(--danger-color);
+    color: white;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.photo-item:hover .photo-delete {
+    opacity: 1;
+}
+
+/* ============================================================================
+   Stats Grid (Wrapped View)
+   ============================================================================ */
+.wrapped-controls {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.wrapped-controls select,
+.wrapped-controls input {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.stat-card {
+    background: var(--card-bg);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+}
+
+.stat-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.stat-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    color: var(--text-light);
+    font-size: 1rem;
+}
+
+/* ============================================================================
+   Loading Spinner
+   ============================================================================ */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid var(--border-color);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ============================================================================
+   Responsive Design - Tablet & Desktop
+   ============================================================================ */
+@media (min-width: 768px) {
+    .app-header h1 {
+        font-size: 2rem;
+    }
+
+    .books-grid {
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
+
+    .book-detail-header {
+        flex-direction: row;
+    }
+
+    .book-detail-cover {
+        width: 200px;
+        height: 300px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .app-main {
+        padding: 2rem;
+    }
+
+    .books-grid {
+        gap: 2rem;
+    }
+
+    .photo-gallery {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+}
+
+/* ============================================================================
+   iPad Pro Specific Optimizations
+   ============================================================================ */
+@media (min-width: 1024px) and (max-width: 1366px) {
+    .books-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* ============================================================================
+   Dark Mode Support (respects system preference)
+   ============================================================================ */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --text-color: #ecf0f1;
+        --text-light: #95a5a6;
+        --bg-color: #1a1a1a;
+        --card-bg: #2c2c2c;
+        --border-color: #3a3a3a;
+    }
+
+    .book-cover,
+    .search-result-cover {
+        background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+    }
+}
