@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Business Finder</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <!-- ── Nav ─────────────────────────────────────────────────── -->
+  <nav class="navbar">
+    <span class="nav-logo">📊 Business Finder</span>
+    <div class="nav-links">
+      <button class="nav-btn active" onclick="showTab('dashboard')">Dashboard</button>
+      <button class="nav-btn" onclick="showTab('listings')">Listings</button>
+      <button class="nav-btn" onclick="showTab('outreach')">Outreach</button>
+    </div>
+  </nav>
+
+  <!-- ── Dashboard ────────────────────────────────────────────── -->
+  <div id="tab-dashboard" class="tab active">
+    <div class="page-header">
+      <h1>Deal Pipeline</h1>
+      <button id="run-btn" class="btn btn-primary" onclick="runPipeline()">▶ Run Pipeline</button>
+    </div>
+    <div id="pipeline-banner" class="banner hidden"></div>
+
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card" id="stat-total">
+        <div class="stat-value">—</div>
+        <div class="stat-label">Total Listings</div>
+      </div>
+      <div class="stat-card" id="stat-scored">
+        <div class="stat-value">—</div>
+        <div class="stat-label">Scored</div>
+      </div>
+      <div class="stat-card highlight" id="stat-top">
+        <div class="stat-value">—</div>
+        <div class="stat-label">Top Opportunities</div>
+      </div>
+      <div class="stat-card" id="stat-pending">
+        <div class="stat-value">—</div>
+        <div class="stat-label">Awaiting Review</div>
+      </div>
+      <div class="stat-card success" id="stat-meetings">
+        <div class="stat-value">—</div>
+        <div class="stat-label">Meetings Booked</div>
+      </div>
+    </div>
+
+    <div class="section-title">Top Opportunities</div>
+    <div id="top-listings" class="listing-list"></div>
+  </div>
+
+  <!-- ── Listings ─────────────────────────────────────────────── -->
+  <div id="tab-listings" class="tab">
+    <div class="page-header">
+      <h1>All Listings</h1>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-bar">
+      <select id="filter-state" onchange="loadListings()">
+        <option value="">All States</option>
+        <option value="QLD">QLD</option>
+        <option value="NSW">NSW</option>
+        <option value="VIC">VIC</option>
+      </select>
+      <input id="filter-sector" type="text" placeholder="Sector…" oninput="debounce(loadListings, 400)()" />
+      <input id="filter-score" type="number" placeholder="Min score" min="0" max="100"
+             oninput="debounce(loadListings, 400)()" />
+      <label class="toggle-label">
+        <input type="checkbox" id="filter-risk" checked onchange="loadListings()" />
+        Hide high risk
+      </label>
+    </div>
+
+    <div id="listings-container" class="listing-list"></div>
+    <button id="load-more-btn" class="btn btn-ghost" onclick="loadMore()" style="display:none">Load more</button>
+  </div>
+
+  <!-- ── Outreach ──────────────────────────────────────────────── -->
+  <div id="tab-outreach" class="tab">
+    <div class="page-header">
+      <h1>Outreach Queue</h1>
+    </div>
+    <p class="sub-text">Review and approve AI-drafted messages before they are sent.</p>
+    <div id="outreach-queue" class="outreach-list"></div>
+  </div>
+
+  <!-- ── Detail modal ─────────────────────────────────────────── -->
+  <div id="modal-overlay" class="modal-overlay hidden" onclick="closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div id="modal-content"></div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
