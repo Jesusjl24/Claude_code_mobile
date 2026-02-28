@@ -238,4 +238,4 @@ def api_export_pdf():
 if __name__ == "__main__":
     # Ensure sites.json exists on first run
     _load_sites()
-    app.run(debug=True, port=5000)
+    app.run(debug=True, host="0.0.0.0", port=5000, use_reloader=False)
