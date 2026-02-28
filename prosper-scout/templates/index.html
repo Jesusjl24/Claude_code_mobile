@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prosper Scout — Business Listing Research</title>
+    <style>
+        /* ── Reset & Base ───────────────────────────────────────────── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --navy:       #1a2744;
+            --navy-light: #243352;
+            --navy-dark:  #111b30;
+            --orange:     #e8742a;
+            --orange-hover:#d0641f;
+            --bg:         #0f1623;
+            --card-bg:    #1c2a42;
+            --text:       #e4e8ef;
+            --text-muted: #8a94a6;
+            --border:     #2d3d56;
+            --success:    #38c97a;
+            --error:      #e74c5e;
+            --warning:    #f0ad4e;
+            --radius:     8px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* ── Header ─────────────────────────────────────────────────── */
+        .header {
+            background: var(--navy);
+            border-bottom: 3px solid var(--orange);
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .header svg { flex-shrink: 0; }
+        .header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #fff;
+        }
+        .header h1 span { color: var(--orange); }
+        .header p {
+            margin-left: auto;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* ── Tabs ───────────────────────────────────────────────────── */
+        .tabs {
+            display: flex;
+            background: var(--navy-dark);
+            border-bottom: 1px solid var(--border);
+        }
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 14px 28px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        .tab-btn:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+        .tab-btn.active {
+            color: var(--orange);
+            border-bottom-color: var(--orange);
+            background: rgba(232,116,42,0.06);
+        }
+
+        .tab-panel { display: none; padding: 28px 32px; max-width: 1100px; }
+        .tab-panel.active { display: block; }
+
+        /* ── Forms ──────────────────────────────────────────────────── */
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .input-group input[type="text"] {
+            flex: 1;
+            padding: 10px 14px;
+            background: var(--navy-light);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text);
+            font-size: 14px;
+            outline: none;
+        }
+        .input-group input[type="text"]:focus {
+            border-color: var(--orange);
+            box-shadow: 0 0 0 2px rgba(232,116,42,0.15);
+        }
+        .input-group input[type="text"]::placeholder { color: var(--text-muted); }
+
+        /* ── Buttons ────────────────────────────────────────────────── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: var(--orange);
+            color: #fff;
+        }
+        .btn-primary:hover { background: var(--orange-hover); }
+        .btn-primary:disabled {
+            background: #5a4a3a;
+            color: #888;
+            cursor: not-allowed;
+        }
+        .btn-secondary {
+            background: var(--navy-light);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+        .btn-secondary:hover { background: var(--navy); border-color: var(--text-muted); }
+        .btn-danger {
+            background: transparent;
+            color: var(--error);
+            border: 1px solid var(--error);
+            padding: 6px 14px;
+            font-size: 13px;
+        }
+        .btn-danger:hover { background: rgba(231,76,94,0.1); }
+        .btn-sm { padding: 6px 14px; font-size: 13px; }
+
+        /* ── Tables ─────────────────────────────────────────────────── */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+        .data-table th {
+            background: var(--navy);
+            color: var(--orange);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 2px solid var(--orange);
+        }
+        .data-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+            vertical-align: top;
+        }
+        .data-table tr:hover td { background: rgba(232,116,42,0.04); }
+        .data-table td a {
+            color: var(--orange);
+            text-decoration: none;
+        }
+        .data-table td a:hover { text-decoration: underline; }
+        .not-found { color: var(--text-muted); font-style: italic; }
+
+        /* ── Messages ───────────────────────────────────────────────── */
+        .message {
+            padding: 14px 18px;
+            border-radius: var(--radius);
+            margin-bottom: 16px;
+            font-size: 14px;
+            display: none;
+        }
+        .message.visible { display: flex; align-items: flex-start; gap: 10px; }
+        .message-warning {
+            background: rgba(240,173,78,0.1);
+            border: 1px solid rgba(240,173,78,0.3);
+            color: var(--warning);
+        }
+        .message-error {
+            background: rgba(231,76,94,0.1);
+            border: 1px solid rgba(231,76,94,0.3);
+            color: var(--error);
+        }
+        .message-success {
+            background: rgba(56,201,122,0.1);
+            border: 1px solid rgba(56,201,122,0.3);
+            color: var(--success);
+        }
+        .message-info {
+            background: rgba(232,116,42,0.08);
+            border: 1px solid rgba(232,116,42,0.25);
+            color: var(--text);
+        }
+
+        /* ── Cards / Previews ───────────────────────────────────────── */
+        .preview-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px;
+            margin: 16px 0;
+        }
+        .preview-card h3 {
+            font-size: 15px;
+            color: var(--orange);
+            margin-bottom: 12px;
+        }
+        .preview-field {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+        .preview-field .label {
+            color: var(--text-muted);
+            min-width: 120px;
+            font-weight: 600;
+        }
+        .preview-field .value { color: var(--text); flex: 1; }
+
+        .sample-url {
+            display: block;
+            color: var(--orange);
+            font-size: 13px;
+            margin: 4px 0;
+            word-break: break-all;
+            text-decoration: none;
+        }
+        .sample-url:hover { text-decoration: underline; }
+
+        /* ── Step sections (Learn tab) ──────────────────────────────── */
+        .step-section {
+            margin-bottom: 24px;
+        }
+        .step-section h3 {
+            font-size: 16px;
+            color: var(--text);
+            margin-bottom: 12px;
+        }
+        .step-section h3 .step-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            background: var(--orange);
+            color: #fff;
+            border-radius: 50%;
+            font-size: 13px;
+            margin-right: 8px;
+        }
+
+        /* ── Override inputs (Learn tab) ─────────────────────────────── */
+        .override-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .override-row .label {
+            min-width: 130px;
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+        .override-row input {
+            flex: 1;
+            padding: 8px 12px;
+            background: var(--navy-light);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text);
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+            outline: none;
+        }
+        .override-row input:focus {
+            border-color: var(--orange);
+        }
+        .override-row .detected-value {
+            font-size: 12px;
+            color: var(--text-muted);
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* ── Empty state ────────────────────────────────────────────── */
+        .empty-state {
+            text-align: center;
+            padding: 48px 20px;
+            color: var(--text-muted);
+        }
+        .empty-state p {
+            font-size: 15px;
+            margin-bottom: 16px;
+        }
+
+        /* ── Export bar ─────────────────────────────────────────────── */
+        .export-bar {
+            display: flex;
+            gap: 10px;
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 1px solid var(--border);
+        }
+
+        /* ── Spinner ────────────────────────────────────────────────── */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Truncate ───────────────────────────────────────────────── */
+        .truncate {
+            max-width: 280px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* ── Section headings ───────────────────────────────────────── */
+        h2.section-title {
+            font-size: 18px;
+            color: var(--text);
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────────── -->
+<div class="header">
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <circle cx="14" cy="14" r="13" stroke="#e8742a" stroke-width="2"/>
+        <path d="M9 18 L14 8 L19 18" stroke="#e8742a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <line x1="10.5" y1="15" x2="17.5" y2="15" stroke="#e8742a" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <h1>Prosper <span>Scout</span></h1>
+    <p>Business Listing Research Tool</p>
+</div>
+
+<!-- ── Tab Navigation ──────────────────────────────────────────────── -->
+<div class="tabs">
+    <button class="tab-btn active" data-tab="scrape">Scrape</button>
+    <button class="tab-btn" data-tab="manage">Manage Sites</button>
+    <button class="tab-btn" data-tab="learn">Learn New Site</button>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     TAB 1: SCRAPE
+     ══════════════════════════════════════════════════════════════════ -->
+<div id="tab-scrape" class="tab-panel active">
+    <h2 class="section-title">Scrape Business Listings</h2>
+
+    <div class="input-group">
+        <input type="text" id="scrape-url" placeholder="Paste an index page URL (e.g. https://www.example.com/listings?page=1)">
+        <button class="btn btn-primary" id="btn-scrape" onclick="startScrape()">
+            Start Scrape
+        </button>
+    </div>
+
+    <!-- Warning: site not configured -->
+    <div id="scrape-warning" class="message message-warning">
+        <span id="scrape-warning-text"></span>
+        <button class="btn btn-sm btn-primary" style="margin-left:auto;white-space:nowrap" onclick="switchTab('learn')">
+            Go to Learn New Site &rarr;
+        </button>
+    </div>
+
+    <!-- Error -->
+    <div id="scrape-error" class="message message-error">
+        <span id="scrape-error-text"></span>
+    </div>
+
+    <!-- Results -->
+    <div id="scrape-results" style="display:none;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Business Name / Headline</th>
+                    <th>Asking Price</th>
+                    <th>Location</th>
+                    <th>Description</th>
+                    <th>Listing URL</th>
+                </tr>
+            </thead>
+            <tbody id="scrape-tbody"></tbody>
+        </table>
+
+        <div class="export-bar">
+            <button class="btn btn-secondary" onclick="exportCSV()">Export as CSV</button>
+            <button class="btn btn-secondary" onclick="exportPDF()">Export as PDF</button>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     TAB 2: MANAGE SITES
+     ══════════════════════════════════════════════════════════════════ -->
+<div id="tab-manage" class="tab-panel">
+    <h2 class="section-title">Configured Sites</h2>
+
+    <div id="manage-empty" class="empty-state" style="display:none;">
+        <p>No sites configured yet. Use the Learn New Site tab to add your first site.</p>
+        <button class="btn btn-primary" onclick="switchTab('learn')">Learn New Site &rarr;</button>
+    </div>
+
+    <table class="data-table" id="manage-table" style="display:none;">
+        <thead>
+            <tr>
+                <th>Domain</th>
+                <th>Date Added</th>
+                <th>Successful Scrapes</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="manage-tbody"></tbody>
+    </table>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     TAB 3: LEARN NEW SITE
+     ══════════════════════════════════════════════════════════════════ -->
+<div id="tab-learn" class="tab-panel">
+    <h2 class="section-title">Teach Prosper Scout a New Site</h2>
+
+    <!-- Step 1 -->
+    <div class="step-section">
+        <h3><span class="step-num">1</span> Index Page Analysis</h3>
+        <div class="input-group">
+            <input type="text" id="learn-index-url" placeholder="Paste the index/listings page URL">
+            <button class="btn btn-primary" id="btn-analyse-index" onclick="analyseIndex()">
+                Analyse Page
+            </button>
+        </div>
+
+        <div id="learn-index-error" class="message message-error">
+            <span id="learn-index-error-text"></span>
+        </div>
+
+        <div id="learn-index-result" style="display:none;">
+            <div class="preview-card">
+                <h3>Index Page Analysis Results</h3>
+                <div class="preview-field">
+                    <span class="label">Cards found:</span>
+                    <span class="value" id="learn-card-count"></span>
+                </div>
+                <div class="preview-field">
+                    <span class="label">Detail link label:</span>
+                    <span class="value" id="learn-link-label"></span>
+                </div>
+                <div class="preview-field" style="flex-direction:column;">
+                    <span class="label">Sample URLs:</span>
+                    <div id="learn-sample-urls" style="margin-top:4px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="step-section" id="learn-step2" style="display:none;">
+        <h3><span class="step-num">2</span> Detail Page Analysis</h3>
+
+        <div id="learn-detail-loading" class="message message-info visible">
+            <span class="spinner"></span>
+            <span>Analysing the first listing page to detect field selectors...</span>
+        </div>
+
+        <div id="learn-detail-error" class="message message-error">
+            <span id="learn-detail-error-text"></span>
+        </div>
+
+        <div id="learn-detail-result" style="display:none;">
+            <div class="preview-card">
+                <h3>Detected Fields — Review &amp; Override</h3>
+                <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">
+                    Check the detected values below. If any are wrong, type a CSS selector in the override field.
+                </p>
+
+                <div class="override-row">
+                    <span class="label">Business Name</span>
+                    <input type="text" id="override-name" placeholder="CSS selector">
+                    <span class="detected-value" id="detected-name"></span>
+                </div>
+                <div class="override-row">
+                    <span class="label">Asking Price</span>
+                    <input type="text" id="override-price" placeholder="CSS selector">
+                    <span class="detected-value" id="detected-price"></span>
+                </div>
+                <div class="override-row">
+                    <span class="label">Location</span>
+                    <input type="text" id="override-location" placeholder="CSS selector">
+                    <span class="detected-value" id="detected-location"></span>
+                </div>
+                <div class="override-row">
+                    <span class="label">Description</span>
+                    <input type="text" id="override-description" placeholder="CSS selector">
+                    <span class="detected-value" id="detected-description"></span>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" id="btn-save-rules" onclick="saveSiteRules()">
+                Save Site Rules
+            </button>
+        </div>
+
+        <div id="learn-save-success" class="message message-success">
+            <span id="learn-save-success-text"></span>
+        </div>
+    </div>
+</div>
+
+<!-- ── JavaScript ───────────────────────────────────────────────────── -->
+<script>
+    /* ── State ──────────────────────────────────────────────────────── */
+    let currentListings = [];
+    let learnState = {
+        domain: '',
+        cardSelector: '',
+        linkLabel: '',
+        sampleUrls: [],
+        detailSelectors: { name: '', price: '', location: '', description: '' },
+    };
+
+    /* ── Tab Switching ──────────────────────────────────────────────── */
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    });
+
+    function switchTab(tab) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        document.querySelector(`.tab-btn[data-tab="${tab}"]`).classList.add('active');
+        document.getElementById(`tab-${tab}`).classList.add('active');
+
+        if (tab === 'manage') loadSites();
+    }
+
+    /* ── Helpers ────────────────────────────────────────────────────── */
+    function showMsg(id, text) {
+        const el = document.getElementById(id);
+        const textEl = document.getElementById(id + '-text');
+        if (textEl) textEl.textContent = text;
+        el.classList.add('visible');
+    }
+
+    function hideMsg(id) {
+        document.getElementById(id).classList.remove('visible');
+    }
+
+    function setLoading(btnId, loading) {
+        const btn = document.getElementById(btnId);
+        if (loading) {
+            btn.disabled = true;
+            btn._origText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner"></span> Working...';
+        } else {
+            btn.disabled = false;
+            btn.innerHTML = btn._origText || btn.innerHTML;
+        }
+    }
+
+    function cellHtml(val) {
+        if (!val || val === 'Not Found') {
+            return '<span class="not-found">Not Found</span>';
+        }
+        return escapeHtml(val);
+    }
+
+    function escapeHtml(text) {
+        const d = document.createElement('div');
+        d.textContent = text;
+        return d.innerHTML;
+    }
+
+    /* ══════════════════════════════════════════════════════════════════
+       TAB 1: SCRAPE
+       ══════════════════════════════════════════════════════════════════ */
+    async function startScrape() {
+        const url = document.getElementById('scrape-url').value.trim();
+        if (!url) return;
+
+        hideMsg('scrape-warning');
+        hideMsg('scrape-error');
+        document.getElementById('scrape-results').style.display = 'none';
+        currentListings = [];
+
+        setLoading('btn-scrape', true);
+
+        try {
+            const resp = await fetch('/api/scrape', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url }),
+            });
+            const data = await resp.json();
+
+            if (!resp.ok) {
+                if (data.error === 'site_not_configured') {
+                    showMsg('scrape-warning', data.message);
+                } else {
+                    showMsg('scrape-error', data.error || 'An error occurred.');
+                }
+                return;
+            }
+
+            currentListings = data.listings || [];
+            renderScrapeResults();
+        } catch (err) {
+            showMsg('scrape-error', 'Network error: ' + err.message);
+        } finally {
+            setLoading('btn-scrape', false);
+        }
+    }
+
+    function renderScrapeResults() {
+        const tbody = document.getElementById('scrape-tbody');
+        tbody.innerHTML = '';
+
+        if (currentListings.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);">No listings found.</td></tr>';
+            document.getElementById('scrape-results').style.display = 'block';
+            return;
+        }
+
+        for (const item of currentListings) {
+            const tr = document.createElement('tr');
+
+            const urlCell = item.url
+                ? `<a href="${escapeHtml(item.url)}" target="_blank" rel="noopener">View Listing</a>`
+                : '<span class="not-found">Not Found</span>';
+
+            const descVal = item.description && item.description !== 'Not Found'
+                ? `<span class="truncate" title="${escapeHtml(item.description)}">${escapeHtml(item.description)}</span>`
+                : '<span class="not-found">Not Found</span>';
+
+            tr.innerHTML = `
+                <td>${cellHtml(item.name)}</td>
+                <td>${cellHtml(item.price)}</td>
+                <td>${cellHtml(item.location)}</td>
+                <td>${descVal}</td>
+                <td>${urlCell}</td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        document.getElementById('scrape-results').style.display = 'block';
+    }
+
+    /* ── Export ─────────────────────────────────────────────────────── */
+    async function exportCSV() {
+        if (!currentListings.length) return;
+        try {
+            const resp = await fetch('/api/export/csv', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ listings: currentListings }),
+            });
+            if (!resp.ok) { alert('Export failed.'); return; }
+            const blob = await resp.blob();
+            downloadBlob(blob, resp.headers.get('Content-Disposition'));
+        } catch (err) {
+            alert('Export error: ' + err.message);
+        }
+    }
+
+    async function exportPDF() {
+        if (!currentListings.length) return;
+        try {
+            const resp = await fetch('/api/export/pdf', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ listings: currentListings }),
+            });
+            if (!resp.ok) { alert('Export failed.'); return; }
+            const blob = await resp.blob();
+            downloadBlob(blob, resp.headers.get('Content-Disposition'));
+        } catch (err) {
+            alert('Export error: ' + err.message);
+        }
+    }
+
+    function downloadBlob(blob, disposition) {
+        let filename = 'prosper-scout-report';
+        if (disposition) {
+            const match = disposition.match(/filename=(.+)/);
+            if (match) filename = match[1].replace(/"/g, '');
+        }
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(a.href);
+    }
+
+    /* ══════════════════════════════════════════════════════════════════
+       TAB 2: MANAGE SITES
+       ══════════════════════════════════════════════════════════════════ */
+    async function loadSites() {
+        try {
+            const resp = await fetch('/api/sites');
+            const data = await resp.json();
+            const domains = Object.keys(data);
+
+            if (domains.length === 0) {
+                document.getElementById('manage-table').style.display = 'none';
+                document.getElementById('manage-empty').style.display = 'block';
+                return;
+            }
+
+            document.getElementById('manage-empty').style.display = 'none';
+            document.getElementById('manage-table').style.display = 'table';
+
+            const tbody = document.getElementById('manage-tbody');
+            tbody.innerHTML = '';
+
+            for (const domain of domains) {
+                const site = data[domain];
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${escapeHtml(domain)}</strong></td>
+                    <td>${escapeHtml(site.date_added || 'Unknown')}</td>
+                    <td>${site.scrape_count || 0}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="deleteSite('${escapeHtml(domain)}')">
+                            Delete
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            }
+        } catch (err) {
+            console.error('Failed to load sites:', err);
+        }
+    }
+
+    async function deleteSite(domain) {
+        if (!confirm(`Remove rules for ${domain}?`)) return;
+        try {
+            await fetch(`/api/sites/${encodeURIComponent(domain)}`, { method: 'DELETE' });
+            loadSites();
+        } catch (err) {
+            alert('Delete failed: ' + err.message);
+        }
+    }
+
+    /* ══════════════════════════════════════════════════════════════════
+       TAB 3: LEARN NEW SITE
+       ══════════════════════════════════════════════════════════════════ */
+    async function analyseIndex() {
+        const url = document.getElementById('learn-index-url').value.trim();
+        if (!url) return;
+
+        hideMsg('learn-index-error');
+        hideMsg('learn-save-success');
+        document.getElementById('learn-index-result').style.display = 'none';
+        document.getElementById('learn-step2').style.display = 'none';
+
+        setLoading('btn-analyse-index', true);
+
+        try {
+            const resp = await fetch('/api/analyse-index', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url }),
+            });
+            const data = await resp.json();
+
+            if (!resp.ok || !data.success) {
+                showMsg('learn-index-error', data.message || data.error || 'Analysis failed.');
+                return;
+            }
+
+            learnState.domain = data.domain;
+            learnState.cardSelector = data.card_selector;
+            learnState.linkLabel = data.link_label;
+            learnState.sampleUrls = data.sample_urls || [];
+
+            // Show results
+            document.getElementById('learn-card-count').textContent =
+                `Found ${data.card_count} listing cards on this page`;
+            document.getElementById('learn-link-label').textContent =
+                data.link_label ? `Found detail page links with label: "${data.link_label}"` : 'No specific link label detected (will use first link in each card)';
+
+            const urlsDiv = document.getElementById('learn-sample-urls');
+            urlsDiv.innerHTML = '';
+            for (const u of learnState.sampleUrls) {
+                const a = document.createElement('a');
+                a.className = 'sample-url';
+                a.href = u;
+                a.target = '_blank';
+                a.rel = 'noopener';
+                a.textContent = u;
+                urlsDiv.appendChild(a);
+            }
+
+            document.getElementById('learn-index-result').style.display = 'block';
+
+            // Automatically proceed to Step 2
+            if (learnState.sampleUrls.length > 0) {
+                analyseDetail(learnState.sampleUrls[0]);
+            }
+        } catch (err) {
+            showMsg('learn-index-error', 'Network error: ' + err.message);
+        } finally {
+            setLoading('btn-analyse-index', false);
+        }
+    }
+
+    async function analyseDetail(url) {
+        document.getElementById('learn-step2').style.display = 'block';
+        document.getElementById('learn-detail-loading').classList.add('visible');
+        document.getElementById('learn-detail-result').style.display = 'none';
+        hideMsg('learn-detail-error');
+
+        try {
+            const resp = await fetch('/api/analyse-detail', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url }),
+            });
+            const data = await resp.json();
+
+            document.getElementById('learn-detail-loading').classList.remove('visible');
+
+            if (!resp.ok) {
+                showMsg('learn-detail-error', data.error || 'Detail analysis failed.');
+                return;
+            }
+
+            const fields = ['name', 'price', 'location', 'description'];
+            for (const f of fields) {
+                const info = data[f] || {};
+                document.getElementById(`override-${f}`).value = info.selector || '';
+                document.getElementById(`detected-${f}`).textContent = info.value || 'Not Found';
+                document.getElementById(`detected-${f}`).title = info.value || '';
+
+                learnState.detailSelectors[f] = info.selector || '';
+            }
+
+            document.getElementById('learn-detail-result').style.display = 'block';
+        } catch (err) {
+            document.getElementById('learn-detail-loading').classList.remove('visible');
+            showMsg('learn-detail-error', 'Network error: ' + err.message);
+        }
+    }
+
+    async function saveSiteRules() {
+        // Read overrides (user may have edited the CSS selectors)
+        const nameSelector = document.getElementById('override-name').value.trim();
+        const priceSelector = document.getElementById('override-price').value.trim();
+        const locationSelector = document.getElementById('override-location').value.trim();
+        const descriptionSelector = document.getElementById('override-description').value.trim();
+
+        const payload = {
+            domain: learnState.domain,
+            index_page: {
+                card_selector: learnState.cardSelector,
+                link_label: learnState.linkLabel,
+            },
+            detail_page: {
+                name_selector: nameSelector,
+                price_selector: priceSelector,
+                location_selector: locationSelector,
+                description_selector: descriptionSelector,
+            },
+        };
+
+        setLoading('btn-save-rules', true);
+
+        try {
+            const resp = await fetch('/api/save-site', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+            const data = await resp.json();
+
+            if (!resp.ok) {
+                alert(data.error || 'Save failed.');
+                return;
+            }
+
+            showMsg('learn-save-success', `Rules saved for ${learnState.domain}. You can now scrape this site from the Scrape tab.`);
+        } catch (err) {
+            alert('Save error: ' + err.message);
+        } finally {
+            setLoading('btn-save-rules', false);
+        }
+    }
+</script>
+</body>
+</html>
