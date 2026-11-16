@@ -6,7 +6,7 @@
 // This is not part of `npm test`; it is how the screens were checked in a
 // desktop Chromium at 390px wide. It proves nothing about a real phone.
 import { createServer } from 'node:http';
-import { existsSync, mkdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
@@ -136,7 +136,7 @@ async function finishScan(run, saveAs) {
 }
 
 // ---- /scan ----
-const ytFirst = await finishScan(await scanFlow('youtube', 'youtube-normal.zip'), 'youtube-first-summary.json');
+await finishScan(await scanFlow('youtube', 'youtube-normal.zip'), 'youtube-first-summary.json');
 await finishScan(await scanFlow('youtube', 'youtube-normal-second.zip', null, { keyboard: true }), 'youtube-second-summary.json');
 await finishScan(await scanFlow('instagram', 'instagram-normal.zip'), 'instagram-first-summary.json');
 await finishScan(await scanFlow('instagram', 'instagram-normal-second.zip'), 'instagram-second-summary.json');
@@ -162,7 +162,7 @@ for (const [app, fixture, expected] of [
 }
 
 // ---- large fixtures: memory and time in desktop Chromium ----
-for (const [app, fixture] of [['youtube', 'youtube-large.zip'], ['instagram', 'instagram-large.zip']]) {
+for (const [app, fixture] of process.env.E2E_SKIP_LARGE ? [] : [['youtube', 'youtube-large.zip'], ['instagram', 'instagram-large.zip']]) {
   if (!existsSync(join(fixtures, fixture))) {
     check(`${fixture} exists (run npm run fixtures)`, false);
     continue;
@@ -183,8 +183,101 @@ for (const [app, fixture] of [['youtube', 'youtube-large.zip'], ['instagram', 'i
   await run.context.close();
 }
 
-export const state = { ytFirst };
-// REVIEW-AND-COMPARE-CHECKS (added with milestones 7 to 9)
+
+// ---- /review ----
+/** A made-up assistant answer: buckets chosen from the topic word in each fixture name. */
+function sampleAnswer(requestText) {
+  const topicVerdict = { coding: 'on-goal', study: 'on-goal', memes: 'off-goal', gaming: 'off-goal', cooking: 'neutral', fitness: 'neutral', music: 'neutral', news: 'unknown' };
+  return requestText
+    .split('\n')
+    .filter((l) => l.startsWith('{"account"'))
+    .map((l) => JSON.parse(l).account)
+    .map((account) => {
+      const topic = Object.keys(topicVerdict).find((t) => account.toLowerCase().includes(t));
+      const bucket = topic ? topicVerdict[topic] : 'unknown';
+      return { account, bucket, reason: bucket === 'unknown' ? 'Name alone is not enough to judge.' : `Made-up ${topic} account for the fixture.` };
+    });
+}
+
+async function reviewFlow(app) {
+  const label = `/review ${app}`;
+  const { context, page, requests, problems } = await newPage(1280, 900);
+  await page.goto(`${origin}/review`);
+  await checkScreen(page, `${label} 1 load`);
+  await page.locator('#summary-file').setInputFiles(join(fixtures, `${app}-unexpected.zip`));
+  check(`${label}: a file that is not a summary is refused`, await page.getByRole('alert').waitFor({ timeout: 5000 }).then(() => true, () => false));
+  await page.locator('#summary-file').setInputFiles(join(out, `${app}-first-summary.json`));
+  await page.getByRole('heading', { name: '1. Copy the classification request' }).waitFor();
+
+  const request = await page.locator('#request-text').inputValue();
+  const answer = sampleAnswer(request);
+  writeFileSync(join(out, `${app}-sample-answer.json`), JSON.stringify(answer, null, 2) + '\n');
+  check(`${label}: request lists accounts and the goal`, answer.length > 5 && request.includes('Get better at writing code'), `${answer.length} accounts`);
+
+  const broken = structuredClone(answer);
+  broken[1].bucket = 'bad';
+  broken.pop();
+  await page.locator('#answer-text').fill(JSON.stringify(broken, null, 2));
+  await page.getByRole('button', { name: 'Check and apply' }).click();
+  const errText = await page.getByRole('alert').innerText();
+  check(`${label}: a wrong answer is refused, naming the entry and line`, /2 problems/.test(errText) && /Entry 2 \(line \d+\)/.test(errText) && /Missing: no entry/.test(errText), errText.slice(0, 160).replace(/\n/g, ' '));
+  check(`${label}: nothing applied after a refused answer`, (await page.locator('.score-big').innerText()).includes('Not enough classified'));
+
+  await page.locator('#answer-text').fill('```json\n' + JSON.stringify(answer, null, 2) + '\n```');
+  await page.getByRole('button', { name: 'Check and apply' }).click();
+  const scoreBefore = await page.locator('.score-big').innerText();
+  check(`${label}: a correct answer gives a running goal-match figure`, /^\d+%$/.test(scoreBefore), scoreBefore);
+
+  const firstOn = answer.find((a) => a.bucket === 'on-goal').account;
+  await page.getByLabel(`Bucket for ${firstOn}`, { exact: true }).selectOption('off-goal');
+  const scoreAfter = await page.locator('.score-big').innerText();
+  check(`${label}: overriding a bucket changes the figure and is marked`, scoreAfter !== scoreBefore && (await page.getByText('changed by you').count()) === 1, `${scoreBefore} -> ${scoreAfter}`);
+  await page.getByLabel(`Bucket for ${firstOn}`, { exact: true }).selectOption('on-goal');
+
+  const ticked = await page.locator('fieldset input[type=checkbox]:checked').count();
+  check(`${label}: three off-goal accounts are pre-ticked`, ticked === 3, `${ticked}`);
+  await page.getByRole('button', { name: /Confirm these 3 accounts/ }).click();
+
+  const followed = app === 'youtube' ? ['@example_coding_01', 'Example Coding Channel 01'] : ['example_coding_account_01', ''];
+  const mentor = async (appChoice, handle, name, reason) => {
+    await page.locator('#mentor-app').selectOption(appChoice);
+    await page.locator('#mentor-handle').fill(handle);
+    if (appChoice === 'youtube') await page.locator('#mentor-name').fill(name);
+    await page.locator('#mentor-reason').fill(reason);
+    await page.getByRole('button', { name: 'Add mentor' }).click();
+  };
+  await mentor(app, followed[0], followed[1], 'Already followed.');
+  check(`${label}: a mentor the tester already follows is refused`, /already follows/.test(await page.getByRole('alert').innerText()));
+  await mentor(app === 'youtube' ? 'instagram' : 'youtube', '@example_mentor_01', 'Example Mentor Channel 01', 'Wrong app.');
+  check(`${label}: a mentor on a different app is refused`, /must be on the same app/.test(await page.getByRole('alert').innerText()));
+  await mentor(app, '@example_mentor_01', 'Example Mentor Channel 01', 'Explains one idea per post, step by step.');
+  await mentor(app, app === 'youtube' ? 'https://www.youtube.com/@example_mentor_03' : 'https://www.instagram.com/example_mentor_03/', 'Example Mentor Channel 03', 'Short weekly exercises.');
+  check(`${label}: valid mentors are added`, (await page.getByRole('list', { name: 'Mentors' }).getByRole('listitem').count()) === 2);
+  await checkScreen(page, `${label} 2 full`);
+
+  const [wip] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Save work in progress' }).click()]);
+  await wip.saveAs(join(out, `${app}-review.json`));
+  await page.reload();
+  await page.locator('#work-file').setInputFiles(join(out, `${app}-review.json`));
+  await page.getByRole('heading', { name: '5. Add mentors' }).waitFor();
+  check(
+    `${label}: saved work reloads with score, confirmation and mentors`,
+    (await page.locator('.score-big').innerText()) === scoreBefore && (await page.getByRole('list', { name: 'Mentors' }).getByRole('listitem').count()) === 2 && (await page.getByRole('button', { name: /Confirmed/ }).count()) === 1,
+  );
+
+  // REPORT-CHECKS
+
+  // The builder tool is meant for a laptop, but it should not break on a phone.
+  await page.setViewportSize({ width: 390, height: 844 });
+  await checkScreen(page, `${label} 3 at 390px`);
+  check(`${label}: every request went to the site itself`, requests.every((u) => u.startsWith(origin) || u.startsWith('blob:') || u.startsWith('data:')));
+  check(`${label}: no console errors`, problems.length === 0, problems.join(' | '));
+  await context.close();
+}
+await reviewFlow('youtube');
+await reviewFlow('instagram');
+
+// COMPARE-CHECKS
 
 await browser.close();
 server.close();

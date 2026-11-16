@@ -62,3 +62,19 @@ One line each: what I chose, and why. Newest at the bottom of each section.
 - **Exactly 60% coverage is enough to score.** The spec says "under 60%" gets no number.
 - **Coverage is measured against views that name an account.** Views with no account (`unattributedEvents`) are outside both the score and the coverage figure, as the spec's formula says.
 - **Ties in the review list are broken by name.** So the same summary always lists the same accounts.
+
+## /review (milestone 7)
+
+- **The pasted answer is all-or-nothing.** If any entry fails, nothing is applied and every problem is listed with its entry number and line; partly applying an answer would hide which accounts were never judged.
+- **One surrounding ``` code fence is stripped before checking; nothing else is forgiven.** Assistants add fences around JSON almost every time; text before or after the JSON is still refused.
+- **A missing account in the answer is an error, not "unclassified".** The request asks for every account; a dropped one usually means the assistant truncated its answer.
+- **"Under 15 words" is checked as at most 14 words.**
+- **The request text includes view counts as well as names and the goal, as the spec says.** Note the consent wording only mentions "account names and your goal" going to the assistant; if that bothers you, the counts are one line to remove in `src/lib/classification.ts`.
+- **The bucket select has five states: on-goal, neutral, off-goal, unknown, not classified.** The last two both stay out of the score; "unknown" records that someone looked and could not tell.
+- **An override keeps the assistant's reason and is tagged "changed by you".** So you can see later what was changed by hand.
+- **Top three off-goal accounts: the three most viewed are pre-ticked, you can swap in others (up to three), and a Confirm button records your sign-off.** Any later bucket change clears the confirmation.
+- **Mentor entry has an "App the mentor is on" select, and also reads profile links.** Both are ways to trip the "different app from the scan" rule: picking the other app, or pasting the other app's link, is refused.
+- **YouTube mentors need a channel name as well as an @handle.** Takeout lists subscriptions by channel name, so the handle alone cannot be checked against what the tester already follows, or matched later in `/compare`.
+- **"Already follows" ignores letter case and a leading @.**
+- **Mentor reason: one line, at most 160 characters.**
+- **Work in progress is saved as `algorithm-health-review.json`; reloading re-checks everything in it, including the mentor rules.** A hand-edited file cannot smuggle in a state the page would have refused.
