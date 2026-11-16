@@ -11,8 +11,8 @@ Updated at every milestone. If the session stopped, the last entry is the true s
 | 3 | YouTube adapter | done — 18 adapter tests + 15 streaming-reader/CSV tests, all five fixtures incl. 210k events |
 | 4 | Instagram adapter | done — 16 adapter tests, all five fixtures incl. 210k events and the HTML-export error |
 | 5 | /scan | done — 15 unit tests (network trap, allowed fields, errors, consent wording, source guards) + browser run at 390px in desktop Chromium |
-| 6 | Scoring | in progress |
-| 7 | /review | not started |
+| 6 | Scoring | done — 12 unit tests incl. zero and one-account cases |
+| 7 | /review | in progress |
 | 8 | report.html export | not started |
 | 9 | /compare | not started |
 | 10 | Hardening | not started |
@@ -28,3 +28,4 @@ Updated at every milestone. If the session stopped, the last entry is the true s
 - **M3 YouTube adapter — done.** Finder, streaming parser, 30-day window, unattributed count, subscriptions. Tested against normal, empty, HTML, unexpected-names and large fixtures plus hand-made edge cases. Untested: any real Takeout export; the format assumptions are listed at the top of `src/adapters/youtube.ts`.
 - **M4 Instagram adapter — done.** Finder, streaming parser for posts viewed + videos watched, following list (two shapes), HTML-export message. Untested: any real Instagram export; assumptions are listed at the top of `src/adapters/instagram.ts`.
 - **M5 /scan — done.** Seven screens, preview, consent text word-for-word from the spec, save file. Unit tests trap fetch/XHR/WebSocket/beacon/Worker during scans of all fixtures; Playwright run in desktop Chromium at 390x844 confirms zero requests during a scan, nothing in browser storage, no sideways scroll, 44px controls, focus moves to each new heading. Large fixtures: about 1s each, sampled JS heap peak under 100 MB. Needs a real device: choosing a zip from the Files app on iPhone/Android, whether Safari can open a large zip, whether the saved file lands somewhere findable.
+- **M6 Scoring — done.** `src/lib/scoring.ts`: goal match, coverage, under-60% rule, unknown/unlisted handling, the 80%/150 review list. Pure functions, unit tested.

@@ -55,3 +55,10 @@ One line each: what I chose, and why. Newest at the bottom of each section.
 - **A zip of the other app gets a specific "you picked the wrong app" message.** It is the most likely mistake.
 - **`createdAt` is the moment the tester presses Save.**
 - **Real-browser checks live in `npm run e2e` (Playwright), not in `npm test`.** `npm test` must work from a clean checkout without downloading a browser; the unit tests trap every network API during a scan, and the browser run counts real requests.
+
+## Scoring (milestone 6)
+
+- **Coverage is shown rounded down.** 59.9% must not display as "60%" beside "Not enough classified to score".
+- **Exactly 60% coverage is enough to score.** The spec says "under 60%" gets no number.
+- **Coverage is measured against views that name an account.** Views with no account (`unattributedEvents`) are outside both the score and the coverage figure, as the spec's formula says.
+- **Ties in the review list are broken by name.** So the same summary always lists the same accounts.
