@@ -38,3 +38,8 @@ One line each: what I chose, and why. Newest at the bottom of each section.
 - **YouTube: every watch-history entry with a channel counts, including YouTube Music and adverts that name a channel.** The spec only says to skip entries with no channel; filtering more would be a guess about a format I have not seen.
 - **YouTube: a missing `subscriptions.csv` stops the scan.** Without the following list the test's success measure cannot be judged.
 - **YouTube: translated Takeout file or column names are not handled.** The scan stops and lists what it found; add the names in `src/adapters/youtube.ts`.
+- **Instagram: one of `posts_viewed.json` / `videos_watched.json` is enough; the preview says which was missing.** Someone who watches only reels (or only posts) may have just one.
+- **Instagram: the following handle is read from `string_list_data[0].value`, falling back to `title`.** Both shapes are believed to exist depending on export date.
+- **Instagram: timestamps must be seconds between 2010 and 2100, else the record is unreadable.** Stops a milliseconds-vs-seconds change from silently producing nonsense dates.
+- **Instagram: translated keys (in place of `Author` / `Time`) and exports split over several zips are not handled.** The scan stops and reports the keys or file names it saw.
+- **Handles and channel names are kept exactly as written in the export (trimmed only).** Changing case or stripping characters would be guessing.
