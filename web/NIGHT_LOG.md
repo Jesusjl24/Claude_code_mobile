@@ -8,8 +8,8 @@ Updated at every milestone. If the session stopped, the last entry is the true s
 |---|-----------|-------|
 | 1 | Scaffold | done — `npm test` (3 router tests) and `npm run build` pass |
 | 2 | Summary shape and fixtures | done — 19 tests (validator, field whitelist, fixture files exist) |
-| 3 | YouTube adapter | in progress |
-| 4 | Instagram adapter | not started |
+| 3 | YouTube adapter | done — 18 adapter tests + 15 streaming-reader/CSV tests, all five fixtures incl. 210k events |
+| 4 | Instagram adapter | in progress |
 | 5 | /scan | not started |
 | 6 | Scoring | not started |
 | 7 | /review | not started |
@@ -25,3 +25,4 @@ Updated at every milestone. If the session stopped, the last entry is the true s
 
 - **M1 Scaffold — done.** Vite + React + TypeScript + Vitest in `web/`, routes `/scan` `/review` `/compare` (placeholders), colours and self-hosted fonts. `SPEC.md` saved at the repo root from the PDF. Untested: nothing has been opened in a browser yet.
 - **M2 Summary shape and fixtures — done.** `src/lib/summary.ts` (type, strict validator, whitelist writer) and 12 fixture zips from `scripts/make-fixtures.mjs`. The fixture layouts are my best understanding of the real exports, not verified against one.
+- **M3 YouTube adapter — done.** Finder, streaming parser, 30-day window, unattributed count, subscriptions. Tested against normal, empty, HTML, unexpected-names and large fixtures plus hand-made edge cases. Untested: any real Takeout export; the format assumptions are listed at the top of `src/adapters/youtube.ts`.
