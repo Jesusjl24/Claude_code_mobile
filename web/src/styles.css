@@ -292,6 +292,7 @@ fieldset {
 }
 
 .alert {
+  overflow-wrap: anywhere;
   border: 1px solid var(--accent);
   border-radius: 12px;
   padding: 14px 16px;
@@ -479,4 +480,29 @@ progress {
     transition: none !important;
     animation: none !important;
   }
+}
+
+details > summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 500;
+}
+details > summary::before {
+  content: '+';
+  font-family: var(--font-mono);
+  color: var(--accent);
+  margin-right: 10px;
+}
+details[open] > summary::before {
+  content: '-';
+}
+details > summary::-webkit-details-marker {
+  display: none;
+}
+pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 0;
 }

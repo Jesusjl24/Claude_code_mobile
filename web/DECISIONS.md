@@ -43,3 +43,15 @@ One line each: what I chose, and why. Newest at the bottom of each section.
 - **Instagram: timestamps must be seconds between 2010 and 2100, else the record is unreadable.** Stops a milliseconds-vs-seconds change from silently producing nonsense dates.
 - **Instagram: translated keys (in place of `Author` / `Time`) and exports split over several zips are not handled.** The scan stops and reports the keys or file names it saw.
 - **Handles and channel names are kept exactly as written in the export (trimmed only).** Changing case or stripping characters would be guessing.
+
+## /scan (milestone 5)
+
+- **The built site ships a Content-Security-Policy with `connect-src 'none'`.** The browser then blocks any upload or outside request even if a bug tried one; it is the strongest form of "the raw export never leaves the tab" available to a static page. Not applied in `npm run dev` (Vite's dev server needs a WebSocket).
+- **The `[AI assistant]` name is set at build time: `VITE_AI_ASSISTANT_NAME="..." npm run build`.** Until you set it, the consent screen shows the literal `[AI assistant]`, so testers must not see a build made without it.
+- **Export instructions on the "pick app" screen are written from memory and unverified.** Menu names in Instagram and Takeout change; check them against the real apps.
+- **Instagram steps say date range "All time", not the shortest range.** I do not know whether a short date range also trims `following.json` to recent follows; a trimmed following list would break `/compare`. Shorten it once your own export shows the following list is complete either way.
+- **The preview shows the goal and the count of views with no account, as well as the five things the spec lists.** Both are in the file, and the screen promises to show everything in the file. A "see the whole file, word for word" section shows the exact JSON.
+- **File names found in a failed zip are shown on screen only, with no copy or send button.** Instagram folder names can include the names of people the tester messages; they should not be pasted to the builder by default. A tester can screenshot the list if you ask.
+- **A zip of the other app gets a specific "you picked the wrong app" message.** It is the most likely mistake.
+- **`createdAt` is the moment the tester presses Save.**
+- **Real-browser checks live in `npm run e2e` (Playwright), not in `npm test`.** `npm test` must work from a clean checkout without downloading a browser; the unit tests trap every network API during a scan, and the browser run counts real requests.
