@@ -316,7 +316,34 @@ async function reviewFlow(app) {
 await reviewFlow('youtube');
 await reviewFlow('instagram');
 
-// COMPARE-CHECKS
+
+// ---- /compare ----
+for (const app of ['youtube', 'instagram']) {
+  const label = `/compare ${app}`;
+  const { context, page, requests, problems } = await newPage(1280, 900);
+  await page.goto(`${origin}/compare`);
+  await checkScreen(page, `${label} 1 load`);
+  // Wrong way round first: the report was made from the first summary.
+  await page.locator('#first-file').setInputFiles(join(out, `${app}-second-summary.json`));
+  await page.locator('#second-file').setInputFiles(join(out, `${app}-first-summary.json`));
+  await page.locator('#report-file').setInputFiles(join(out, `${app}-review.json`));
+  check(`${label}: swapped files are refused`, await page.getByText('These files do not belong together').waitFor({ timeout: 5000 }).then(() => true, () => false));
+  await page.locator('#first-file').setInputFiles(join(out, `${app}-first-summary.json`));
+  await page.locator('#second-file').setInputFiles(join(out, `${app}-second-summary.json`));
+  await page.getByRole('heading', { name: 'Result' }).waitFor();
+  const resultText = await page.locator('.score-big').first().innerText();
+  check(`${label}: changes matching the report are counted`, Number(resultText) >= 4, `${resultText}`);
+  const unf = await page.getByRole('heading', { name: /^Unfollowed/ }).innerText();
+  check(`${label}: three accounts unfollowed`, unf.includes('(3)'), unf);
+  check(`${label}: the followed mentor is shown as now followed`, (await page.getByText('Now followed').count()) >= 1);
+  check(`${label}: before and after goal match shown`, (await page.getByRole('heading', { name: /Before \(first scan\)|After \(second scan\)/ }).count()) === 2);
+  await checkScreen(page, `${label} 2 result`);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await checkScreen(page, `${label} 3 at 390px`);
+  check(`${label}: every request went to the site itself`, requests.every((u) => u.startsWith(origin)));
+  check(`${label}: no console errors`, problems.length === 0, problems.join(' | '));
+  await context.close();
+}
 
 await browser.close();
 server.close();

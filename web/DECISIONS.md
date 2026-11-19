@@ -87,3 +87,11 @@ One line each: what I chose, and why. Newest at the bottom of each section.
 - **The ring is goal match as specified; the off-goal picks section comes before the bucket sections.** It is the most actionable part.
 - **"This is wrong" offers the other two buckets plus "I do not know this account".** Corrections are gathered with an optional note into one block of text with a Copy button; nothing is sent from the page.
 - **"/compare" reads the review file (`algorithm-health-review.json`) as the report data.** It already holds the first summary, buckets, picks and mentors; the export step has a "Save report data" button for it. Nothing is hidden inside report.html for the tester to send back.
+
+## /compare (milestone 9)
+
+- **"Report data" is the saved review file.** It holds the first summary, so `/compare` checks that the first summary loaded is the one the report was made from (same `createdAt` and goal) and refuses mismatched or swapped files.
+- **A change "matches the report" when the tester followed a mentor or unfollowed any account the report put off-goal (top-three pick or not).** "Against the report" is unfollowing an on-goal account or a mentor, or following an off-goal account. Everything else is shown as "no link". This is my reading of "the changes match the report"; the per-tester pass/fail call is left to you.
+- **The gap between scans is measured between the two summaries' `createdAt`, and a gap outside 7 to 14 days is a warning, not a refusal.** You may still want to count a tester who scanned on day 15.
+- **Before-and-after goal match uses only the first scan's buckets, as the spec says, so mentors and new accounts count in neither.** Views of mentor accounts in the second scan are shown on their own line beside it, so a real shift toward mentors is not hidden.
+- **Accounts are matched ignoring letter case and a leading @.** YouTube mentors are matched by channel name, since Takeout lists subscriptions by name.

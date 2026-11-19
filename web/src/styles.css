@@ -506,3 +506,8 @@ pre {
   overflow-wrap: anywhere;
   margin: 0;
 }
+
+.rank-list .pill {
+  flex: none;
+  align-self: center;
+}
