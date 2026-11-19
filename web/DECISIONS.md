@@ -95,3 +95,10 @@ One line each: what I chose, and why. Newest at the bottom of each section.
 - **The gap between scans is measured between the two summaries' `createdAt`, and a gap outside 7 to 14 days is a warning, not a refusal.** You may still want to count a tester who scanned on day 15.
 - **Before-and-after goal match uses only the first scan's buckets, as the spec says, so mentors and new accounts count in neither.** Views of mentor accounts in the second scan are shown on their own line beside it, so a real shift toward mentors is not hidden.
 - **Accounts are matched ignoring letter case and a leading @.** YouTube mentors are matched by channel name, since Takeout lists subscriptions by name.
+
+## Hardening (milestone 10)
+
+- **"Screen-reader pass" was done with automated checks, not a screen reader.** Names on every control, language, landmarks, heading order and aria references are checked on every screen; listening with VoiceOver or TalkBack is on your hand-test list.
+- **Report fonts load on demand.** They are 95 KB and only `/review` needs them.
+- **The zip library stays at its full size (main bundle 152 KB gzipped).** A slimmer build of it was not worth the risk tonight.
+- **The browser checks (`npm run e2e`) need Playwright's Chromium, so they are not part of `npm test`.**

@@ -15,11 +15,20 @@ Updated at every milestone. If the session stopped, the last entry is the true s
 | 7 | /review | done — 27 unit tests (request text, strict paste check, overrides, picks, mentor rules, save/reload) + browser run for both apps |
 | 8 | report.html export | done — 14 unit tests (self-contained, escaping, CSP, buckets, picks, under-60% text, controls) + browser check of the exported file at 390px |
 | 9 | /compare | done — 9 unit tests incl. both apps' first and second fixtures + browser run |
-| 10 | Hardening | in progress |
+| 10 | Hardening | done — 1,005 browser checks pass (keyboard, names, headings, 390px, no requests, large fixtures); clean checkout installs, tests and builds |
 
 ## Needs a real device
 
-- Nothing has been run on an iPhone or any phone. Everything about phones is untested (list grows below as features land).
+Nothing has been run on an iPhone, an Android phone, or in Safari or Firefox. All browser checks used desktop Chromium, with the window set to 390px wide. That is not a phone. Each of these needs trying on a real device:
+
+- **Choosing the export zip** from the Files app (iPhone) or Downloads (Android) on `/scan`.
+- **Large exports on a phone.** Whether Safari on an iPhone can read a large Instagram export without the tab reloading. Desktop Chromium peaked at about 100 MB of JS heap on 210,000 events; phone tabs get much less memory.
+- **Where the saved summary file lands** on each phone, and whether a tester can find it to send it.
+- **Opening `report.html` from a messaging app** (WhatsApp, Messages, Messenger, email). Some apps show attachments in a viewer that does not run scripts; then the "This is wrong" control will not work, though the rest of the report reads fine.
+- **The Copy corrections button** in that viewer, and in Safari (clipboard rules differ).
+- **Embedded fonts** in iOS Safari.
+- **The real Instagram and Takeout export menus**, against the steps written on `/scan`.
+- **A screen reader** (VoiceOver, TalkBack). Only automated checks were run; nobody listened to the pages.
 
 ## Log
 
@@ -32,3 +41,5 @@ Updated at every milestone. If the session stopped, the last entry is the true s
 - **M7 /review — done.** Load summary, classification request, strict paste validation with entry and line numbers, bucket table with overrides and running goal match, off-goal confirmation, mentor rules, save and reload work in progress. Checked in desktop Chromium at 1280px and 390px. Untested: a real assistant's answer (only a made-up one was pasted); clipboard copy was not exercised in the browser run.
 - **M8 report.html export — done.** One 118 KB file with fonts, styles and script inline and a CSP forbidding outside requests. In desktop Chromium at 390px, opening it from disk made zero requests; fonts load, there is no sideways scroll, and the corrections control gathers text and copies. Needs a real device: opening an .html file received in a messaging app on iPhone/Android (some apps open attachments in a viewer that may not run the script, in which case the corrections control will not work).
 - **M9 /compare — done.** Loads first summary, second summary and report data; lists newly followed and unfollowed accounts tagged against the report (mentor, off-goal pick, bucket), counts matching changes, shows each mentor and pick, and goal match before and after with the first scan's buckets. On both apps' fixtures it finds 4 matching changes (1 mentor followed, 3 off-goal picks unfollowed). Checked in desktop Chromium at 1280px and 390px.
+- **M10 Hardening — done, with limits.** Large fixtures (210,000 view events each) scan in 1.2 to 1.5 s in desktop Chromium; sampled peak JS heap was 16 MB (YouTube) and 97 MB (Instagram). Every screen (home, 7 `/scan` screens and the error screen for each bad fixture, `/review` at 1280 and 390px, the exported report at 390px, `/compare` at 1280 and 390px) is checked in the browser. The checks cover: every control reachable by Tab with a visible focus ring; every button and link named; no skipped heading levels; aria references valid; one h1; no sideways scroll; 44px controls; no emoji. The report's embedded fonts were moved into a chunk loaded only when exporting, so phones on `/scan` do not download them. `npm install && npm test && npm run build` pass from a fresh checkout. Not done: a real screen reader, any real phone, Safari or Firefox. The main bundle is 429 KB (152 KB gzipped), mostly the zip library; I left it.
+- **MORNING.md written.**

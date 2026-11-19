@@ -72,8 +72,83 @@ async function checkScreen(page, name) {
   check(`${name}: every input has a label`, r.unlabelled.length === 0, r.unlabelled.join('; '));
   check(`${name}: exactly one h1`, r.h1 === 1, `${r.h1}`);
   check(`${name}: no emoji`, !r.emoji);
+  await a11yChecks(page, name);
+  await keyboardChecks(page, name);
   await page.screenshot({ path: join(out, `${name.replace(/[^a-z0-9]+/gi, '-')}.png`), fullPage: true });
   return r;
+}
+
+/**
+ * Automated stand-ins for a screen-reader pass. They catch the usual
+ * failures (no names, no language, no landmarks, skipped heading levels) but
+ * are not a substitute for listening to the page with VoiceOver or TalkBack.
+ */
+async function a11yChecks(page, name) {
+  const r = await page.evaluate(() => {
+    const visible = (el) => {
+      const b = el.getBoundingClientRect();
+      const st = getComputedStyle(el);
+      return (b.width > 0 || b.height > 0) && st.visibility !== 'hidden';
+    };
+    const nameOf = (el) => (el.getAttribute('aria-label') || el.textContent || '').trim() || (el.labels && el.labels.length ? el.labels[0].textContent.trim() : '') || el.getAttribute('title') || '';
+    const unnamed = [...document.querySelectorAll('button, a[href], [role=button]')].filter(visible).filter((el) => !nameOf(el)).map((el) => el.outerHTML.slice(0, 60));
+    const levels = [...document.querySelectorAll('h1,h2,h3,h4')].filter(visible).map((h) => Number(h.tagName[1]));
+    const skips = levels.filter((l, i) => i > 0 && l > levels[i - 1] + 1);
+    const badIds = [...document.querySelectorAll('[aria-describedby],[aria-controls],[aria-labelledby]')].flatMap((el) =>
+      ['aria-describedby', 'aria-controls', 'aria-labelledby'].flatMap((a) => (el.getAttribute(a) || '').split(/\s+/).filter(Boolean).filter((id) => !document.getElementById(id))),
+    );
+    return { lang: document.documentElement.lang, main: !!document.querySelector('main'), title: document.title, unnamed, skips, badIds };
+  });
+  check(`${name}: page language, title and main landmark`, r.lang === 'en' && r.main && r.title.length > 0);
+  check(`${name}: every button and link has a name`, r.unnamed.length === 0, r.unnamed.join('; '));
+  check(`${name}: no skipped heading levels`, r.skips.length === 0, JSON.stringify(r.skips));
+  check(`${name}: aria references point at real elements`, r.badIds.length === 0, r.badIds.join(', '));
+}
+
+/** Tabs through the whole screen: every control is reachable and shows a visible focus ring. */
+async function keyboardChecks(page, name) {
+  const wanted = await page.evaluate(() =>
+    [...document.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), summary, [tabindex="0"]')]
+      .filter((el) => {
+        const b = el.getBoundingClientRect();
+        return b.width > 0 && b.height > 0 && getComputedStyle(el).visibility !== 'hidden' && !el.closest('[hidden]') && !el.closest('details:not([open]) > :not(summary)');
+      })
+      .filter((el) => !(el.type === 'radio' && !el.checked && document.querySelector(`input[type=radio][name="${el.name}"]:checked`)))
+      .map((el, i) => (el.dataset.kbd = String(i))).length,
+  );
+  await page.evaluate(() => {
+    if (document.activeElement && document.activeElement !== document.body) document.activeElement.dataset.kbdPrev = '1';
+    document.activeElement && document.activeElement.blur();
+    window.scrollTo(0, 0);
+  });
+  const reached = new Set();
+  const noRing = [];
+  for (let i = 0; i < wanted + 30; i++) {
+    await page.keyboard.press('Tab');
+    const f = await page.evaluate(() => {
+      const el = document.activeElement;
+      if (!el || el === document.body) return null;
+      const st = getComputedStyle(el);
+      const ring = (st.outlineStyle !== 'none' && parseFloat(st.outlineWidth) > 0) || st.boxShadow !== 'none';
+      return { id: el.dataset.kbd ?? null, ring, desc: `${el.tagName} ${(el.textContent || el.id || '').trim().slice(0, 30)}` };
+    });
+    if (!f) continue;
+    if (f.id !== null) reached.add(f.id);
+    if (!f.ring) noRing.push(f.desc);
+    if (reached.size >= wanted) break;
+  }
+  check(`${name}: keyboard reaches every control`, reached.size >= wanted, `${reached.size} of ${wanted}`);
+  check(`${name}: visible focus ring on every control`, noRing.length === 0, [...new Set(noRing)].join('; '));
+  // Put focus back where the screen left it, so the flow carries on as a user would.
+  await page.evaluate(() => {
+    document.querySelectorAll('[data-kbd]').forEach((el) => delete el.dataset.kbd);
+    const prev = document.querySelector('[data-kbd-prev]');
+    if (prev) {
+      delete prev.dataset.kbdPrev;
+      prev.focus();
+    } else document.activeElement && document.activeElement.blur();
+    window.scrollTo(0, 0);
+  });
 }
 
 async function scanFlow(app, fixture, saveAs, { keyboard = false } = {}) {
@@ -133,6 +208,16 @@ async function finishScan(run, saveAs) {
   check(`${label}: no console errors`, problems.length === 0, problems.join(' | '));
   await context.close();
   return saved;
+}
+
+// ---- home ----
+{
+  const { context, page } = await newPage(390, 844);
+  await page.goto(`${origin}/`);
+  await checkScreen(page, 'home');
+  await page.goto(`${origin}/nothing-here`);
+  check('unknown address shows a not-found page', await page.getByRole('heading', { name: 'Page not found' }).isVisible());
+  await context.close();
 }
 
 // ---- /scan ----

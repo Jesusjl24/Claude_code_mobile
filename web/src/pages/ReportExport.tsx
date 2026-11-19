@@ -1,6 +1,5 @@
 import { saveTextFile } from '../lib/files';
 import { REPORT_FILE_NAME, buildReportHtml, reportReadiness } from '../lib/report';
-import { REPORT_FONTS } from '../lib/report-fonts';
 import { REVIEW_FILE_NAME, toReviewFile, type ReviewWork } from '../lib/review';
 
 export function ReportExport({ work, onStatus }: { work: ReviewWork; onStatus: (s: string) => void }) {
@@ -27,7 +26,9 @@ export function ReportExport({ work, onStatus }: { work: ReviewWork; onStatus: (
           className="btn btn-primary"
           disabled={!readiness.ready}
           aria-describedby={readiness.ready ? undefined : 'report-missing'}
-          onClick={() => {
+          onClick={async () => {
+            // The embedded fonts are only needed here, so they are loaded on demand and never weigh down /scan.
+            const { REPORT_FONTS } = await import('../lib/report-fonts');
             saveTextFile(REPORT_FILE_NAME, buildReportHtml(work, REPORT_FONTS, new Date()), 'text/html');
             onStatus('report.html saved.');
           }}
