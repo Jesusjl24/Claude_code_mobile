@@ -78,3 +78,12 @@ One line each: what I chose, and why. Newest at the bottom of each section.
 - **"Already follows" ignores letter case and a leading @.**
 - **Mentor reason: one line, at most 160 characters.**
 - **Work in progress is saved as `algorithm-health-review.json`; reloading re-checks everything in it, including the mentor rules.** A hand-edited file cannot smuggle in a state the page would have refused.
+
+## report.html (milestone 8)
+
+- **Fonts are embedded in the report as base64 (about 95 KB of the 118 KB file), not loaded from Google Fonts.** The spec allowed font requests, but embedding means the report opens with no outside request at all, and it carries a CSP that forbids any.
+- **Export is blocked until the answer is applied, the off-goal picks are confirmed (if any account is off-goal), and at least one mentor is added.** A report without mentors fails the test's "suggests who to follow instead" purpose.
+- **Account shares in the report are a share of all posts viewed from named accounts; bucket headers give account and view counts, not percentages.** One denominator for every percentage except the ring, so numbers never seem to disagree.
+- **The ring is goal match as specified; the off-goal picks section comes before the bucket sections.** It is the most actionable part.
+- **"This is wrong" offers the other two buckets plus "I do not know this account".** Corrections are gathered with an optional note into one block of text with a Copy button; nothing is sent from the page.
+- **"/compare" reads the review file (`algorithm-health-review.json`) as the report data.** It already holds the first summary, buckets, picks and mentors; the export step has a "Save report data" button for it. Nothing is hidden inside report.html for the tester to send back.

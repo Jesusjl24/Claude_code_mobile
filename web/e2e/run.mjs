@@ -8,7 +8,7 @@
 import { createServer } from 'node:http';
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, extname, join, normalize } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { chromium } from 'playwright';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -265,7 +265,46 @@ async function reviewFlow(app) {
     (await page.locator('.score-big').innerText()) === scoreBefore && (await page.getByRole('list', { name: 'Mentors' }).getByRole('listitem').count()) === 2 && (await page.getByRole('button', { name: /Confirmed/ }).count()) === 1,
   );
 
-  // REPORT-CHECKS
+
+  // ---- report.html ----
+  const [rep] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Export report.html' }).click()]);
+  check(`${label}: report file is named report.html`, rep.suggestedFilename() === 'report.html');
+  const reportPath = join(out, `${app}-report.html`);
+  await rep.saveAs(reportPath);
+  const reportSize = statSync(reportPath).size;
+  check(`${label}: report.html is one file under 300 KB`, reportSize < 300_000, `${Math.round(reportSize / 1024)} KB`);
+  {
+    const r = await newPage(390, 844);
+    await r.page.goto(pathToFileURL(reportPath).href);
+    await r.page.waitForLoadState('load');
+    const outside = r.requests.filter((u) => !u.startsWith('file:') && !u.startsWith('data:'));
+    check(`${label} report: opening it makes no outside request`, outside.length === 0, outside.join(', '));
+    const fontsOk = await r.page.evaluate(async () => {
+      await document.fonts.ready;
+      return ['800 20px Syne', '400 16px "DM Sans"', '400 16px "DM Mono"'].every((f) => document.fonts.check(f));
+    });
+    check(`${label} report: embedded fonts load`, fontsOk);
+    await checkScreen(r.page, `${label} report`);
+    const ring = await r.page.locator('.score, .score-none').first().innerText();
+    check(`${label} report: goal-match ring shows a number`, /^\d+%$/.test(ring), ring);
+    const firstWrong = r.page.getByRole('button', { name: 'This is wrong' }).first();
+    await firstWrong.click();
+    check(`${label} report: "This is wrong" opens and focuses a choice`, (await firstWrong.getAttribute('aria-expanded')) === 'true' && (await r.page.evaluate(() => document.activeElement?.tagName)) === 'SELECT');
+    await r.page.keyboard.press('ArrowDown');
+    await r.page.locator('.fix:not([hidden]) select').first().selectOption('dont-know');
+    await r.page.getByLabel('Anything else to add (optional)').fill('Made-up note.');
+    const text = await r.page.locator('#corrections').inputValue();
+    check(`${label} report: corrections are gathered as text to copy`, /report says .+; I say I do not know this account\./.test(text) && text.includes('Note: Made-up note.'), text.replace(/\n/g, ' | ').slice(0, 160));
+    await r.context.grantPermissions(['clipboard-read', 'clipboard-write']).catch(() => {});
+    await r.page.getByRole('button', { name: 'Copy corrections' }).click();
+    const copyMsg = await r.page.locator('#copied').filter({ hasText: /Copied|Could not copy/ }).waitFor({ timeout: 5000 }).then(() => r.page.locator('#copied').innerText(), () => '');
+    check(`${label} report: copy confirms`, copyMsg !== '', copyMsg);
+    const mentorLinks = await r.page.locator('.mentor a').evaluateAll((as) => as.map((a) => a.href));
+    check(`${label} report: mentor cards link to profiles on the scanned app`, mentorLinks.length === 2 && mentorLinks.every((h) => h.includes(app === 'youtube' ? 'youtube.com/@' : 'instagram.com/')), mentorLinks.join(', '));
+    check(`${label} report: no console errors`, r.problems.length === 0, r.problems.join(' | '));
+    await r.page.screenshot({ path: join(out, `${app}-report-390.png`), fullPage: true });
+    await r.context.close();
+  }
 
   // The builder tool is meant for a laptop, but it should not break on a phone.
   await page.setViewportSize({ width: 390, height: 844 });
